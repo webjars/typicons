@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>9</version>
+    </parent>
+
+    <packaging>jar</packaging>
+    <groupId>org.webjars</groupId>
+    <artifactId>typicons</artifactId>
+    <version>2.0.7-SNAPSHOT</version>
+
+    <name>Typicons</name>
+    <description>WebJar for typicons</description>
+    <url>http://webjars.org</url>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <upstream.version>2.0.7</upstream.version>
+        <upstream.url>https://github.com/stephenhutchings/typicons.font/archive/${upstream.version}.zip</upstream.url>
+        <webjars.directory>${project.build.outputDirectory}/META-INF/resources/webjars/${project.artifactId}/${project.version}</webjars.directory>
+        <requirejs>
+            {
+            }
+        </requirejs>
+    </properties>
+
+    <developers>
+        <developer>
+            <id>thiagogarbazza</id>
+            <name>Thiago Garbazza</name>
+            <email>thiagogarbazza@gmail.com</email>
+        </developer>
+    </developers>
+
+    <licenses>
+        <license>
+            <name>MIT</name>
+            <url>http://opensource.org/licenses/MIT</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <url>http://github.com/webjars/typicons</url>
+        <connection>scm:git:https://github.com/webjars/typicons.git</connection>
+        <developerConnection>scm:git:https://github.com/webjars/typicons.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.7</version>
+                <executions>
+                    <execution>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <echo message="download archive" />
+                                <get src="${upstream.url}" dest="${project.build.directory}/${project.artifactId}.zip" />
+
+                                <echo message="unzip archive" />
+                                <unzip src="${project.build.directory}/${project.artifactId}.zip" dest="${project.build.directory}" />
+
+                                <echo message="moving resources" />
+                                <move todir="${webjars.directory}">
+                                    <fileset dir="${project.build.directory}/${project.artifactId}.font-${upstream.version}/src/font"/>
+                                </move>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>com.google.code.maven-replacer-plugin</groupId>
+                <artifactId>replacer</artifactId>
+                <version>1.5.3</version>
+                <executions>
+                    <execution>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>replace</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <includes>
+                        <include>${webjars.directory}/*.css</include>
+                    </includes>
+                    <inputFilePattern>(.*).css</inputFilePattern>
+                    <outputFilePattern>$1-jsf.css</outputFilePattern>
+                    <replacements>
+                        <replacement>
+                            <token>url\((')?([A-z-.#?]*)(')?\)</token>
+                            <value>url("#{resource['webjars:${project.artifactId}/${project.version}/$2']}")</value>
+                        </replacement>
+                    </replacements>
+                    <regex>true</regex>
+                    <regexFlags>
+                        <regexFlag>CASE_INSENSITIVE</regexFlag>
+                    </regexFlags>
+                    <unescape>true</unescape>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.5.1</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>1.6.5</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>sonatype-nexus-staging</serverId>
+                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
